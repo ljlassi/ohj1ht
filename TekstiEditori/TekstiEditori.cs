@@ -1,11 +1,6 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Linq;
-using System.Collections.Generic;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
 /// @author lassi
 /// @version 01.10.2025
@@ -31,7 +26,7 @@ public class TekstiEditori
             syote = Console.ReadKey(false);
             bufferi.Append(MerkinTunnistus(syote.Key, syote.KeyChar));
         } while (syote.Key != ConsoleKey.Delete);
-        Console.WriteLine("\n" + bufferi.ToString());
+        Console.WriteLine("\n" + bufferi);
         Console.WriteLine($"Bufferia käytetty: {bufferi.Length} / {bufferinKoko}");
         File.WriteAllText(fileName, bufferi.ToString());
         Console.WriteLine($"Kirjoitettu tuloste tiedostoon {fileName}");
