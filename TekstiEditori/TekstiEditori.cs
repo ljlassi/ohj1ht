@@ -11,8 +11,10 @@ public class TekstiEditori
 {
     private static ConsoleKeyInfo syote;
     private static StringBuilder bufferi;
-    private static readonly int bufferinKoko = 5000;
-    private static readonly string fileName = "./tiedosto.txt";
+    private static readonly int bufferinKoko = 50;
+    private static readonly string tiedostonNimi = "./tiedosto.txt";
+    private static readonly string ohjeTeksti = "Kirjoita teksi, paina DEL lopettaksesi:";
+    private static readonly string bufferionTaynnaTeksti = "Bufferi on täynnä!";
     /// <summary>
     /// Ohjelman päämetodi
     /// </summary>
@@ -23,13 +25,22 @@ public class TekstiEditori
         bufferi = new StringBuilder("", bufferinKoko);
         do
         {
-            syote = Console.ReadKey(false);
-            bufferi.Append(MerkinTunnistus(syote.Key, syote.KeyChar));
+            syote = Console.ReadKey(true);
+            char merkki = MerkinTunnistus(syote.Key, syote.KeyChar);
+            if(bufferi.Length > 0 && bufferinKoko - 1 < bufferi.Length)
+            {
+                BufferiTaynna();
+            }
+            else
+            {
+                bufferi.Append(merkki);
+                Console.Write(merkki);
+            }
         } while (syote.Key != ConsoleKey.Delete);
         Console.WriteLine("\n" + bufferi);
         Console.WriteLine($"Bufferia käytetty: {bufferi.Length} / {bufferinKoko}");
-        File.WriteAllText(fileName, bufferi.ToString());
-        Console.WriteLine($"Kirjoitettu tuloste tiedostoon {fileName}");
+        KirjoitaBufferiTiedostoon(tiedostonNimi, bufferi);
+        Console.WriteLine($"Kirjoitettu tuloste tiedostoon {tiedostonNimi}");
     }
 
     /// <summary>
@@ -57,8 +68,43 @@ public class TekstiEditori
     /// syötettä annettaessa.
     /// </summary>
     /// <param name="syvyys"></param>
-    public static void PoistaSyotetteesta(int syvyys)
+    /// <param name="poistaViimeisinMerkki"></param>
+    public static void PoistaSyotetteesta(int syvyys, bool poistaViimeisinMerkki = false)
     {
-        bufferi.Remove(bufferi.Length - syvyys, syvyys);
+        if (bufferi.Length - 1 > syvyys)
+        {
+            bufferi.Remove(bufferi.Length - syvyys, syvyys);
+            if (poistaViimeisinMerkki) bufferi.Remove(bufferi.Length, 1);
+        }
+        ResetoiKonsoli();
+    }
+
+    /// <summary>
+    /// Tämä metodi resetoi konsolin ja kirjoittaa ohjetekstin ja bufferin senhetkisen sisällän ruudulle.
+    /// </summary>
+    public static void ResetoiKonsoli()
+    {
+        Console.Clear();
+        Console.WriteLine(ohjeTeksti);
+        Console.Write(bufferi);
+    }
+
+    /// <summary>
+    /// Huomauttaa käyttäjälle bufferin täyttymisestä.
+    /// </summary>
+    public static void BufferiTaynna()
+    {
+        Console.WriteLine($"{bufferionTaynnaTeksti}, bufferia käytetty: {bufferi.Length} / {bufferinKoko}");
+    }
+
+    /// <summary>
+    /// Sanitoi ja kirjoittaa bufferin sisällön tiedostoon.
+    /// </summary>
+    /// <param name="tiedostonPolku"></param>
+    /// <param name="teksti"></param>
+    public static void KirjoitaBufferiTiedostoon(string tiedostonPolku, StringBuilder teksti)
+    {
+        bufferi.Replace("\0", "");
+        File.WriteAllText(tiedostonPolku, teksti.ToString());
     }
 }
