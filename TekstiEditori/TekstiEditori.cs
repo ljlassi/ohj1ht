@@ -10,8 +10,8 @@ using System.Text;
 public class TekstiEditori
 {
     private static ConsoleKeyInfo syote;
-    private static StringBuilder bufferi = null;
-    private static readonly int bufferinKoko = 5000;
+    private static StringBuilder bufferi;
+    private static readonly int bufferinKoko = 10000;
     private static string tiedostonNimi = "./tiedosto.txt";
     private static readonly string ohjeTeksti = "Kirjoita teksti, paina ESC lopettaksesi:";
     private static readonly string bufferionTaynnaTeksti = "Bufferi on täynnä!";
@@ -20,12 +20,16 @@ public class TekstiEditori
     /// </summary>
     public static void Main(string[] args)
     {
+        Console.TreatControlCAsInput = true;
+        bufferi = new StringBuilder("", bufferinKoko);
         if (args.Length != 0)
         {
             tiedostonNimi = args[0];
+            if (File.Exists(tiedostonNimi))
+            {
+                bufferi.Append(File.ReadAllText(tiedostonNimi));
+            }
         }
-        Console.TreatControlCAsInput = true;
-        bufferi = new StringBuilder("", bufferinKoko);
         ResetoiKonsoli();
         do
         {
