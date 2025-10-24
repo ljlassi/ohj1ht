@@ -11,9 +11,9 @@ public class TekstiEditori
 {
     private static ConsoleKeyInfo syote;
     private static StringBuilder bufferi;
-    private static readonly int bufferinKoko = 50;
+    private static readonly int bufferinKoko = 150;
     private static readonly string tiedostonNimi = "./tiedosto.txt";
-    private static readonly string ohjeTeksti = "Kirjoita teksi, paina DEL lopettaksesi:";
+    private static readonly string ohjeTeksti = "Kirjoita teksi, paina ESC lopettaksesi:";
     private static readonly string bufferionTaynnaTeksti = "Bufferi on täynnä!";
     /// <summary>
     /// Ohjelman päämetodi
@@ -21,7 +21,7 @@ public class TekstiEditori
     public static void Main()
     {
         Console.TreatControlCAsInput = true;
-        Console.WriteLine("Kirjoita teksi, paina DEL lopettaksesi:");
+        Console.WriteLine(ohjeTeksti);
         bufferi = new StringBuilder("", bufferinKoko);
         do
         {
@@ -36,7 +36,7 @@ public class TekstiEditori
                 bufferi.Append(merkki);
                 Console.Write(merkki);
             }
-        } while (syote.Key != ConsoleKey.Delete);
+        } while (syote.Key != ConsoleKey.Escape);
         Console.WriteLine("\n" + bufferi);
         Console.WriteLine($"Bufferia käytetty: {bufferi.Length} / {bufferinKoko}");
         KirjoitaBufferiTiedostoon(tiedostonNimi, bufferi);
