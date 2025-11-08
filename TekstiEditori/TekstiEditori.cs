@@ -15,6 +15,9 @@ public class TekstiEditori
     private static string tiedostonNimi = "./tiedosto.txt";
     private static readonly string ohjeTeksti = "Kirjoita teksti, paina ESC lopettaksesi:";
     private static readonly string bufferionTaynnaTeksti = "Bufferi on täynnä!";
+    private static int kursoriX = 0; // Mallintaa kursorin sijaintia X-akselilla terminaali-ikkunan sisällä
+    private static int kursoriY = 0; // Sama alustava idea Y-akselin osalta mutta tämä on TODO
+    
     /// <summary>
     /// Ohjelman päämetodi
     /// </summary>
@@ -47,10 +50,14 @@ public class TekstiEditori
             {
                 BufferiTaynna();
             }
+            else if(kursoriX < bufferi.Length)
+            {
+                bufferi.Insert(kursoriX, merkki);
+                Console.Write(merkki);
+            }
             else
             {
-                bufferi.Append(merkki);
-                Console.Write(merkki);
+                bufferi.Insert(bufferi.Length, merkki);
             }
         } while (syote.Key != ConsoleKey.Escape);
 
@@ -80,6 +87,12 @@ public class TekstiEditori
                 return '\0';
             case ConsoleKey.Escape:
                 return '\0';
+            case ConsoleKey.LeftArrow:
+                SiirraKursoria(kursoriX - 1, kursoriY);
+                return '\0';
+            case ConsoleKey.RightArrow:
+                SiirraKursoria(kursoriX + 1, kursoriY);
+                return '\0';
             default:
                 return merkki;
         }
@@ -93,9 +106,9 @@ public class TekstiEditori
     /// <param name="poistaViimeisinMerkki"></param>
     public static void PoistaSyotetteesta(int syvyys, bool tyhjennysOptio = true, bool poistaViimeisinMerkki = false)
     {
-        if (bufferi.Length > syvyys)
+        if (bufferi.Length + kursoriX > syvyys + kursoriX)
         {
-            bufferi.Remove(bufferi.Length - syvyys, syvyys);
+            bufferi.Remove(bufferi.Length + kursoriX - syvyys - kursoriX, syvyys);
             if (poistaViimeisinMerkki) bufferi.Remove(bufferi.Length, 1);
         }
         else if((syvyys == bufferi.Length || syvyys > bufferi.Length) && tyhjennysOptio)
@@ -113,6 +126,22 @@ public class TekstiEditori
         Console.Clear();
         Console.WriteLine(ohjeTeksti);
         Console.Write(bufferi.ToString());
+        SiirraKursoria(bufferi.Length, 0);
+    }
+
+    public static void SiirraKursoria(int x, int y)
+    {
+        if (x > 0 && x < bufferi.Length)
+        {
+            Console.CursorLeft = x;
+            kursoriX = x;
+        }
+
+        if (y > 0)
+        {
+            Console.CursorTop = y;
+            kursoriY = y;
+        }
     }
 
     /// <summary>
