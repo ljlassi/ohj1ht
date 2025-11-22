@@ -15,8 +15,8 @@ public class TekstiEditori
     private static string tiedostonNimi = "./tiedosto.txt";
     private static readonly string ohjeTeksti = "Kirjoita teksti, paina ESC lopettaksesi:";
     private static readonly string bufferionTaynnaTeksti = "Bufferi on täynnä!";
-    private static int kursoriX = 0; // Mallintaa kursorin sijaintia X-akselilla terminaali-ikkunan sisällä
-    private static int kursoriY = 0; // Sama alustava idea Y-akselin osalta mutta tämä on TODO
+    private static int kursoriX; // Mallintaa kursorin sijaintia X-akselilla terminaali-ikkunan sisällä
+    private static int kursoriY; // Sama alustava idea Y-akselin osalta mutta tämä on TODO
     
     /// <summary>
     /// Ohjelman päämetodi
@@ -60,14 +60,16 @@ public class TekstiEditori
                 bufferi.Insert(bufferi.Length, merkki);
             }
         } while (syote.Key != ConsoleKey.Escape);
-
-        Console.Clear();
-        Console.WriteLine("\n" + bufferi);
+        
         if (KirjoitaBufferiTiedostoon(tiedostonNimi))
         {
             Console.WriteLine($"Kirjoitettu tuloste tiedostoon {tiedostonNimi}");
         }
-        Console.WriteLine($"Bufferia käytetty: {bufferi.Length} / {bufferinKoko}");
+        else
+        {
+            Console.WriteLine("Tiedostoon ei tehty muutoksia.");
+        }
+        Console.WriteLine($"Bufferia käytettiin: {bufferi.Length} / {bufferinKoko}");
     }
 
     /// <summary>
@@ -76,7 +78,7 @@ public class TekstiEditori
     /// <param name="nappain"></param>
     /// <param name="merkki"></param>
     /// <returns></returns>
-    public static char MerkinTunnistus(ConsoleKey nappain, char merkki)
+    private static char MerkinTunnistus(ConsoleKey nappain, char merkki)
     {
         switch (nappain)
         {
@@ -104,7 +106,7 @@ public class TekstiEditori
     /// </summary>
     /// <param name="syvyys"></param>
     /// <param name="poistaViimeisinMerkki"></param>
-    public static void PoistaSyotetteesta(int syvyys, bool tyhjennysOptio = true, bool poistaViimeisinMerkki = false)
+    private static void PoistaSyotetteesta(int syvyys, bool tyhjennysOptio = true, bool poistaViimeisinMerkki = false)
     {
         if (bufferi.Length + kursoriX > syvyys + kursoriX)
         {
@@ -121,7 +123,7 @@ public class TekstiEditori
     /// <summary>
     /// Tämä metodi resetoi konsolin ja kirjoittaa ohjetekstin ja bufferin senhetkisen sisällän ruudulle.
     /// </summary>
-    public static void ResetoiKonsoli()
+    private static void ResetoiKonsoli()
     {
         Console.Clear();
         Console.WriteLine(ohjeTeksti);
@@ -129,7 +131,7 @@ public class TekstiEditori
         SiirraKursoria(bufferi.Length, 0);
     }
 
-    public static void SiirraKursoria(int x, int y)
+    private static void SiirraKursoria(int x, int y)
     {
         if (x > 0 && x < bufferi.Length)
         {
@@ -147,7 +149,7 @@ public class TekstiEditori
     /// <summary>
     /// Huomauttaa käyttäjälle bufferin täyttymisestä.
     /// </summary>
-    public static void BufferiTaynna()
+    private static void BufferiTaynna()
     {
         Console.WriteLine($"{bufferionTaynnaTeksti}, bufferia käytetty: {bufferi.Length} / {bufferinKoko}");
     }
@@ -157,7 +159,7 @@ public class TekstiEditori
     /// </summary>
     /// <param name="tiedostonPolku"></param>
     /// <param name="teksti"></param>
-    public static bool KirjoitaBufferiTiedostoon(string tiedostonPolku)
+    private static bool KirjoitaBufferiTiedostoon(string tiedostonPolku)
     {
         bufferi.Replace("\0", "");
         if (bufferi.Length == 1)
@@ -165,12 +167,36 @@ public class TekstiEditori
             bufferi.Replace("\n", "");
             bufferi.Replace(" ", "");
         }
-        if (bufferi.Length > 0)
-        {
+
+        syote = Console.ReadKey(true);
+        if (KirjoitetaankoTiedostoon(syote.Key)) {
             File.WriteAllText(tiedostonPolku, bufferi.ToString());
             return true;
         }
 
+        return false;
+    }
+
+    private static bool KirjoitetaankoTiedostoon(ConsoleKey nappain)
+    {
+        SiirraKursoria(0, 0);
+        Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        Console.WriteLine("Tallennetaanko tiedostoon tehdyt muutokset? Kyllä/Ei (K/E)");
+        Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        if (nappain == ConsoleKey.Delete)
+        {
+            syote = Console.ReadKey();
+            nappain = syote.Key;
+        }
+        switch (nappain)
+        {
+            case ConsoleKey.K:
+                return true;
+            case ConsoleKey.E:
+                break;
+            default:
+                return KirjoitetaankoTiedostoon(ConsoleKey.Delete);
+        }
         return false;
     }
 }
