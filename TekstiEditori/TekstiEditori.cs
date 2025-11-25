@@ -100,11 +100,16 @@ public class TekstiEditori
                 // Tämän ehtolauseen ehdon täyttyessä kursori on X-akselilla muualla kuin tekstin lopussa, jolloin
                 // halutaan lisätä uusi merkki kursorin osoittamaan paikkaan, eikä vain tekstin loppuun.
                 _bufferi.Insert(_kursoriX, merkki);
-                Console.Write(merkki);
+                
+                SiirraKursoria(_kursoriX + 1, _kursoriY); // Siirretään kursoria nyt listäyn merkin verran oikealle.
+                ResetoiKonsoli(false);    // Tämä on hiukan raskas ratkaisutapa, mutta keksinyt parempaakaan tekstin päivittämiseksi
+                                                    // Muut ratkaisutavat ovat ongelmallisia nyt kun kursoria voi liikuttaa ainakin X-akselilla.
             }
             else
             {
                 _bufferi.Insert(_bufferi.Length, merkki); // Lisätään merkki bufferin loppuun, eli tämänhetkisen tekstin loppuun.
+                SiirraKursoria(_kursoriX + 1, _kursoriY); // Siirretään kursoria nyt listäyn merkin verran oikealle.
+                ResetoiKonsoli(false);
             }
         } while (_syote.Key != ConsoleKey.Escape);
         
@@ -153,6 +158,8 @@ public class TekstiEditori
             case ConsoleKey.RightArrow:
                 SiirraKursoria(_kursoriX + 1, _kursoriY);
                 return '\0';
+            case ConsoleKey.Tab:
+                return '\t';
             default:
                 return merkki; // Ei ole erikoistapaus, eli palautetaan vain alkuperäinen merkki.
         }
@@ -168,32 +175,41 @@ public class TekstiEditori
     /// <param name="poistaViimeisinMerkki">Mikäli tosi, poistetaan myös viimeinen merkki</param>
     private static void PoistaSyotetteesta(int syvyys, bool tyhjennysOptio = true, bool poistaViimeisinMerkki = false)
     {
-        if (_bufferi.Length + _kursoriX > syvyys + _kursoriX)
+        if (_bufferi.Length > syvyys && _kursoriX - syvyys >= 0 && _kursoriX <= _bufferi.Length)
         {
-            _bufferi.Remove(_bufferi.Length + _kursoriX - syvyys - _kursoriX, syvyys);
+            _bufferi.Remove(_kursoriX - 1, syvyys);
             
             if (poistaViimeisinMerkki) _bufferi.Remove(_bufferi.Length, 1);
+            
+            SiirraKursoria(_kursoriX -1, _kursoriY);
+            ResetoiKonsoli(false);
             
         }
         
         else if ((syvyys == _bufferi.Length || syvyys > _bufferi.Length) && tyhjennysOptio)
         {
             _bufferi.Clear();
+            ResetoiKonsoli();
         }
-        ResetoiKonsoli();
     }
 
     
     /// <summary>
     /// Tämä metodi resetoi konsolin ja kirjoittaa ohjetekstin ja bufferin senhetkisen sisällän ruudulle.
     /// Resetoi myös kursorin sijainnin.
+    /// <param name="resetoiKursori">Resetoidaanko myös kursorin sijainti? Oletuksena kyllä</param>
     /// </summary>
-    private static void ResetoiKonsoli()
+    private static void ResetoiKonsoli(bool resetoiKursori = true)
     {
         Console.Clear();
         Console.WriteLine(_ohjeTeksti);
         Console.Write(_bufferi.ToString());
-        SiirraKursoria(_bufferi.Length, 0);
+
+        if (resetoiKursori)
+        {
+            SiirraKursoria(_bufferi.Length, 0);
+        }
+        
     }
 
     
@@ -204,7 +220,7 @@ public class TekstiEditori
     /// <param name="y">Mihin siirretään kursori pystysuunnassa</param>
     private static void SiirraKursoria(int x, int y)
     {
-        if (x > 0 && x < _bufferi.Length) // Varmistetaan, että kursorin sijainti pysyy kuitenkin tekstin sisällä.
+        if (x >= 0 && x < _bufferi.Length + 1) // Varmistetaan, että kursorin sijainti pysyy kuitenkin tekstin rajoissa.
         {
             Console.CursorLeft = x;
             _kursoriX = x;
