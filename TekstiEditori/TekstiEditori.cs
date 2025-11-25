@@ -54,6 +54,7 @@ public class TekstiEditori
     /// </summary>
     private static int _kursoriY;
     
+    
     /// <summary>
     /// Ohjelman päämetodi. Sallitut komentoriviparametrit ovat:
     /// tiedostonnimi (string)
@@ -62,6 +63,7 @@ public class TekstiEditori
     public static void Main(string[] args)
     {
         Console.TreatControlCAsInput = true; // Estetään ohjelman automaattinen sulku painettaessa Ctrl+C.
+        
         if (args.Length != 0)
         {
             _tiedostonNimi = args[0];
@@ -88,12 +90,12 @@ public class TekstiEditori
                 // Mikäli palautetu merkki on tässä ehtolauseen ehdossa täyttyvä merkki, ei
                 // oikeastaan haluta tehdä yhtään mitään - paitsi skipata alla olevat ehtolauseet.
             }
-            else if(_bufferi.Length > 0 && _bufferinKoko - 1 < _bufferi.Length)
+            else if (_bufferi.Length > 0 && _bufferinKoko - 1 < _bufferi.Length)
             {
                 // Tämän ehtolauseen ehdon täyttyessä bufferi on täysi eikä haluta sinne enää kirjoittaa
                 BufferiTaynna(); // Kerrotaan asiasta myös käyttäjälle.
             }
-            else if(_kursoriX < _bufferi.Length)
+            else if (_kursoriX < _bufferi.Length)
             {
                 // Tämän ehtolauseen ehdon täyttyessä kursori on X-akselilla muualla kuin tekstin lopussa, jolloin
                 // halutaan lisätä uusi merkki kursorin osoittamaan paikkaan, eikä vain tekstin loppuun.
@@ -114,8 +116,11 @@ public class TekstiEditori
         {
             Console.WriteLine("Tiedostoon ei tehty muutoksia.");
         }
+        
         Console.WriteLine($"Bufferia käytettiin: {_bufferi.Length} / {_bufferinKoko}");
+        
     }
+    
 
     /// <summary>
     /// Tämä metodi on tarkoitettu tiettyjen erikoismerkkien tunnistamiseen ja läpikäymiseen.
@@ -153,6 +158,7 @@ public class TekstiEditori
         }
     }
 
+    
     /// <summary>
     /// Tällä voi poistaa merkkejä syötteestä, esimerkiksi kun ollaan käytetty backspacea
     /// syötettä annettaessa.
@@ -165,15 +171,19 @@ public class TekstiEditori
         if (_bufferi.Length + _kursoriX > syvyys + _kursoriX)
         {
             _bufferi.Remove(_bufferi.Length + _kursoriX - syvyys - _kursoriX, syvyys);
+            
             if (poistaViimeisinMerkki) _bufferi.Remove(_bufferi.Length, 1);
+            
         }
-        else if((syvyys == _bufferi.Length || syvyys > _bufferi.Length) && tyhjennysOptio)
+        
+        else if ((syvyys == _bufferi.Length || syvyys > _bufferi.Length) && tyhjennysOptio)
         {
             _bufferi.Clear();
         }
         ResetoiKonsoli();
     }
 
+    
     /// <summary>
     /// Tämä metodi resetoi konsolin ja kirjoittaa ohjetekstin ja bufferin senhetkisen sisällän ruudulle.
     /// Resetoi myös kursorin sijainnin.
@@ -186,6 +196,7 @@ public class TekstiEditori
         SiirraKursoria(_bufferi.Length, 0);
     }
 
+    
     /// <summary>
     /// Siirretään kursoria konsolin sisällä.
     /// </summary>
@@ -214,6 +225,7 @@ public class TekstiEditori
         Console.WriteLine($"{_bufferionTaynnaTeksti}, bufferia käytetty: {_bufferi.Length} / {_bufferinKoko}");
     }
 
+    
     /// <summary>
     /// Sanitoi ja kirjoittaa bufferin sisällön tiedostoon.
     /// </summary>
@@ -237,6 +249,7 @@ public class TekstiEditori
         return false;
     }
 
+    
     /// <summary>
     /// Kysyy käyttäjältä, haluaako hän tallentaa tiedostoon tehdyt muutokset.
     /// HUOM: Tämä metodi käyttää rekursiota siinä tapauksessa, että käyttäjä painaa
@@ -255,11 +268,13 @@ public class TekstiEditori
         Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         Console.WriteLine("Tallennetaanko tiedostoon tehdyt muutokset? Kyllä/Ei (K/E)");
         Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        
         if (nappain == ConsoleKey.Delete) // Jos näppäin on delete, kysytään uudestaan (liittyy rekursion toteutustapaan)
         {
             _syote = Console.ReadKey();
             nappain = _syote.Key;
         }
+        
         switch (nappain)
         {
             case ConsoleKey.K:
@@ -269,6 +284,7 @@ public class TekstiEditori
             default: // Epävalidi näppäin, kysytään uudestaan rekursion avulla.
                 return KirjoitetaankoTiedostoon(ConsoleKey.Delete);
         }
+        
         return false;
     }
 }
