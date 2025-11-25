@@ -158,6 +158,12 @@ public class TekstiEditori
             case ConsoleKey.RightArrow:
                 SiirraKursoria(_kursoriX + 1, _kursoriY);
                 return '\0';
+            case ConsoleKey.UpArrow:
+                SiirraKursoria(0, _kursoriY - 1);
+                return '\0';
+            case ConsoleKey.DownArrow:
+                SiirraKursoria(_kursoriX, _kursoriY + 1);
+                return '\0';
             case ConsoleKey.Tab:
                 return '\t';
             default:
@@ -207,7 +213,7 @@ public class TekstiEditori
 
         if (resetoiKursori)
         {
-            SiirraKursoria(_bufferi.Length, 0);
+            SiirraKursoria(_bufferi.Length, 1);
         }
         
     }
@@ -226,11 +232,20 @@ public class TekstiEditori
             _kursoriX = x;
         }
 
+        else if (x <= 0 && y > 1) // Mikäli X-akselilla ollaan menossa negativiisen puolelle ja Y-akselilla on mahdollista siirtyä ylöspäin
+        {
+            Console.CursorTop = y - 1;
+            _kursoriY = y - 1;
+            ResetoiKonsoli(false);
+            return;
+        }
+        
         if (y > 0)
         {
             Console.CursorTop = y;
             _kursoriY = y;
         }
+        
     }
 
     /// <summary>
@@ -256,7 +271,10 @@ public class TekstiEditori
             _bufferi.Replace(" ", "");
         }
 
-        _syote = Console.ReadKey(false);
+        _syote = Console.ReadKey(true);
+        Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        Console.WriteLine("Tallennetaanko tiedostoon tehdyt muutokset? Kyllä/Ei (K/E)");
+        Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         if (KirjoitetaankoTiedostoon(_syote.Key)) { // Kysytään käyttäjltä haluaako hän tallentaa muutokset.
             File.WriteAllText(tiedostonPolku, _bufferi.ToString());
             return true;
@@ -281,9 +299,6 @@ public class TekstiEditori
     /// </example>
     public static bool KirjoitetaankoTiedostoon(ConsoleKey nappain)
     {
-        Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        Console.WriteLine("Tallennetaanko tiedostoon tehdyt muutokset? Kyllä/Ei (K/E)");
-        Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         
         if (nappain == ConsoleKey.Delete) // Jos näppäin on delete, kysytään uudestaan (liittyy rekursion toteutustapaan)
         {
