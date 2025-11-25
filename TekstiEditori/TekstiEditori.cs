@@ -122,8 +122,16 @@ public class TekstiEditori
     /// </summary>
     /// <param name="nappain">Syötteestä saatu näppäinpainallus muodossa ConsoleKey </param>
     /// <param name="merkki">Syötteestä saadun näppäinpainalluksen merkki char-muodossa</param>
-    /// <returns></returns>
-    private static char MerkinTunnistus(ConsoleKey nappain, char merkki)
+    /// <returns>Palauttaa halutun merkin</returns>
+    /// <example>
+    /// <pre name="test">
+    /// MerkinTunnistus(ConsoleKey.Enter, '\n') === '\n';
+    /// MerkinTunnistus(ConsoleKey.Enter, 's') === '\n';
+    /// MerkinTunnistus(ConsoleKey.Escape, 'E') === '\0';
+    /// MerkinTunnistus(ConsoleKey.E, 'E') === 'E';
+    /// </pre>
+    /// </example>
+    public static char MerkinTunnistus(ConsoleKey nappain, char merkki)
     {
         switch (nappain)
         {
@@ -236,9 +244,14 @@ public class TekstiEditori
     /// </summary>
     /// <param name="nappain">Painetun näppäimen arvo</param>
     /// <returns>Tosi mikäli käyttäjä haluaa tallentaa, muuten epätosi</returns>
-    private static bool KirjoitetaankoTiedostoon(ConsoleKey nappain)
+    /// <example>
+    /// <pre name="test">
+    /// KirjoitetaankoTiedostoon(ConsoleKey.K) === true;
+    /// KirjoitetaankoTiedostoon(ConsoleKey.E) === false;
+    /// </pre>
+    /// </example>
+    public static bool KirjoitetaankoTiedostoon(ConsoleKey nappain)
     {
-        SiirraKursoria(0, 0); // resetoidaan kursorin sijainti
         Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         Console.WriteLine("Tallennetaanko tiedostoon tehdyt muutokset? Kyllä/Ei (K/E)");
         Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
