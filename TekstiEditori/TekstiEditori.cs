@@ -5,98 +5,143 @@ using System.Text;
 /// @author lassi
 /// @version 01.10.2025
 /// <summary>
-/// Ohjelman pääluokka
+/// Ohjelman pääluokka. Ohjelma on yksinkertainen tekstieditori jolla voi avata halutun tiedoston
+/// komentoriviparametrin pohjalta ja muokata sen tekstisisältöä.
 /// </summary>
 public class TekstiEditori
 {
-    private static ConsoleKeyInfo syote;
-    private static StringBuilder bufferi;
-    private static int bufferinKoko = 10000;
-    private static string tiedostonNimi = "./tiedosto.txt";
-    private static readonly string ohjeTeksti = "Kirjoita teksti, paina ESC lopettaksesi:";
-    private static readonly string bufferionTaynnaTeksti = "Bufferi on täynnä!";
-    private static int kursoriX; // Mallintaa kursorin sijaintia X-akselilla terminaali-ikkunan sisällä
-    private static int kursoriY; // Sama alustava idea Y-akselin osalta mutta tämä on TODO
+    /// <summary>
+    /// Luodaan luokan attribuutiksi ConsoleKeyInfo jonka avulla saadaan syötettä
+    /// otettua talteen. Tehdään tästä attribuutti koska tarvitsemme tätä osassa aliohjelmia
+    /// ja halutaan välttää toistoa ja samanaikaisia tietorakenteita.
+    /// </summary>
+    private static ConsoleKeyInfo _syote;
+    /// <summary>
+    /// Toimii bufferina jonne kirjoitettu teksti viedään näppäinpainallusten pohjalta.
+    /// Bufferin sisältämää tekstiä saatetaan myös prosessoida aliohjelmissa.
+    /// </summary>
+    private static StringBuilder _bufferi;
+    /// <summary>
+    /// Bufferin suurin sallittu koko, minkä oletusarvo voidaan yliajaa komentorivi-paramterin avulla.
+    /// Mikäli suurin sallittu koko ylittyy, ei enää viedä näppäinpainalluksia bufferriin
+    /// ja käyttäjää varoitetaan asiasta.
+    /// </summary>
+    private static int _bufferinKoko = 10000;
+    /// <summary>
+    /// Tiedoston nimi (tai polku) joka ldataan ja johon ohjelman lopuksia voidaan kirjoittaa bufferin sisältö.
+    /// Komentoriviparametrin avulla muokattavissa.
+    /// </summary>
+    private static string _tiedostonNimi = "./tiedosto.txt";
+    /// <summary>
+    /// Ohjelman perusohjeteksti, tulostetaan ruudulle eri yhteksissä. Ajateltu että
+    /// readonly-attribuutti sopii tähän paremmin kuin vakio, sillä mikäli ohjelmaa tästä laajentaisi,
+    /// voisi hyvinkin tulla kyseeseen alustaa teksti esimerkiksi konfiguraatiotiedoston pohjalta.
+    /// </summary>
+    private static readonly string _ohjeTeksti = "Kirjoita teksti, paina ESC lopettaksesi:";
+    /// <summary>
+    /// Teksti joka tulostetaan ruuudlle mikäli bufferi on täynnä. Samat perustelut askan suhteen kuin _ohjeTeksti osalta.
+    /// </summary>
+    private static readonly string _bufferionTaynnaTeksti = "Bufferi on täynnä!";
+    /// <summary>
+    /// Kursorin sijainti komentorivillä tekstin sisällä, X-askelilla.
+    /// </summary>
+    private static int _kursoriX;
+    /// <summary>
+    /// Kursorin sijainti komentorivillä tekstin sisällä, Y-akselilla.
+    /// HUOM: Tämän toteutus on nykyisellään hiukan vaillinnainen, koska kursorin liikuttaminen Y-akselilla
+    /// ylös-alas nuolinäppäimillä osoittautui äärimmäisen vaikeaksi toteuttaa .NET-kontekstissa ainakaan
+    /// cross-platform -tyylisesti.
+    /// </summary>
+    private static int _kursoriY;
     
     /// <summary>
-    /// Ohjelman päämetodi
+    /// Ohjelman päämetodi. Sallitut komentoriviparametrit ovat:
+    /// tiedostonnimi (string)
+    /// bufferinKoko (int)
     /// </summary>
     public static void Main(string[] args)
     {
-        Console.TreatControlCAsInput = true;
+        Console.TreatControlCAsInput = true; // Estetään ohjelman automaattinen sulku painettaessa Ctrl+C.
         if (args.Length != 0)
         {
-            tiedostonNimi = args[0];
+            _tiedostonNimi = args[0];
         }
         if (args.Length > 1)
         {
-            bufferinKoko = Convert.ToInt32(args[1]);
+            _bufferinKoko = Convert.ToInt32(args[1]);
         }
-        bufferi = new StringBuilder("", bufferinKoko);
-        if (File.Exists(tiedostonNimi))
+        
+        _bufferi = new StringBuilder("", _bufferinKoko);
+       
+        if (File.Exists(_tiedostonNimi)) // Mikäli tiedosto on jo olemassa
         {
-            bufferi.Append(File.ReadAllText(tiedostonNimi));
+            _bufferi.Append(File.ReadAllText(_tiedostonNimi)); // Luetaan tiedoston sisältö bufferiin
         }
-        ResetoiKonsoli();
-        do
+        ResetoiKonsoli(); // Resetoidaan konsolin sisältö ja näytetään olemassa oleva teksti
+        
+        do // Ohjelman pääsilmukka, luetaan näppäinpainalluksia pääsääntöisesti kunnes käyttäjä painaa ESC.
         {
-            syote = Console.ReadKey(true);
-            char merkki = MerkinTunnistus(syote.Key, syote.KeyChar);
+            _syote = Console.ReadKey(true); // aletaan ottaa vastan syötettä
+            char merkki = MerkinTunnistus(_syote.Key, _syote.KeyChar);
             if (merkki == '\0')
             {
-                
+                // Mikäli palautetu merkki on tässä ehtolauseen ehdossa täyttyvä merkki, ei
+                // oikeastaan haluta tehdä yhtään mitään - paitsi skipata alla olevat ehtolauseet.
             }
-            else if(bufferi.Length > 0 && bufferinKoko - 1 < bufferi.Length)
+            else if(_bufferi.Length > 0 && _bufferinKoko - 1 < _bufferi.Length)
             {
-                BufferiTaynna();
+                // Tämän ehtolauseen ehdon täyttyessä bufferi on täysi eikä haluta sinne enää kirjoittaa
+                BufferiTaynna(); // Kerrotaan asiasta myös käyttäjälle.
             }
-            else if(kursoriX < bufferi.Length)
+            else if(_kursoriX < _bufferi.Length)
             {
-                bufferi.Insert(kursoriX, merkki);
+                // Tämän ehtolauseen ehdon täyttyessä kursori on X-akselilla muualla kuin tekstin lopussa, jolloin
+                // halutaan lisätä uusi merkki kursorin osoittamaan paikkaan, eikä vain tekstin loppuun.
+                _bufferi.Insert(_kursoriX, merkki);
                 Console.Write(merkki);
             }
             else
             {
-                bufferi.Insert(bufferi.Length, merkki);
+                _bufferi.Insert(_bufferi.Length, merkki); // Lisätään merkki bufferin loppuun, eli tämänhetkisen tekstin loppuun.
             }
-        } while (syote.Key != ConsoleKey.Escape);
+        } while (_syote.Key != ConsoleKey.Escape);
         
-        if (KirjoitaBufferiTiedostoon(tiedostonNimi))
+        if (KirjoitaBufferiTiedostoon(_tiedostonNimi))
         {
-            Console.WriteLine($"Kirjoitettu tuloste tiedostoon {tiedostonNimi}");
+            Console.WriteLine($"Kirjoitettu tuloste tiedostoon {_tiedostonNimi}");
         }
         else
         {
             Console.WriteLine("Tiedostoon ei tehty muutoksia.");
         }
-        Console.WriteLine($"Bufferia käytettiin: {bufferi.Length} / {bufferinKoko}");
+        Console.WriteLine($"Bufferia käytettiin: {_bufferi.Length} / {_bufferinKoko}");
     }
 
     /// <summary>
-    /// Tarkoitettu tiettyjen erikoismerkkien läpikäymiseen.
+    /// Tämä metodi on tarkoitettu tiettyjen erikoismerkkien tunnistamiseen ja läpikäymiseen.
     /// </summary>
-    /// <param name="nappain"></param>
-    /// <param name="merkki"></param>
+    /// <param name="nappain">Syötteestä saatu näppäinpainallus muodossa ConsoleKey </param>
+    /// <param name="merkki">Syötteestä saadun näppäinpainalluksen merkki char-muodossa</param>
     /// <returns></returns>
     private static char MerkinTunnistus(ConsoleKey nappain, char merkki)
     {
         switch (nappain)
         {
-            case ConsoleKey.Enter:
+            case ConsoleKey.Enter: // Halutaan rivinvaihto
                 return '\n';
-            case ConsoleKey.Backspace:
+            case ConsoleKey.Backspace: // Poistetaan syötteestä edellinen merkki
                 PoistaSyotetteesta(1);
+                return '\0'; // Huom: '\0' palautetaan koska jotain jokin merkki on palautettava, ja ko. merkki on tyhjä.
+            case ConsoleKey.Escape: // Halutaan sulkea ohjelma
                 return '\0';
-            case ConsoleKey.Escape:
-                return '\0';
-            case ConsoleKey.LeftArrow:
-                SiirraKursoria(kursoriX - 1, kursoriY);
+            case ConsoleKey.LeftArrow: // Siirretään kursoria konsolin sisällä.
+                SiirraKursoria(_kursoriX - 1, _kursoriY);
                 return '\0';
             case ConsoleKey.RightArrow:
-                SiirraKursoria(kursoriX + 1, kursoriY);
+                SiirraKursoria(_kursoriX + 1, _kursoriY);
                 return '\0';
             default:
-                return merkki;
+                return merkki; // Ei ole erikoistapaus, eli palautetaan vain alkuperäinen merkki.
         }
     }
 
@@ -104,45 +149,52 @@ public class TekstiEditori
     /// Tällä voi poistaa merkkejä syötteestä, esimerkiksi kun ollaan käytetty backspacea
     /// syötettä annettaessa.
     /// </summary>
-    /// <param name="syvyys"></param>
-    /// <param name="poistaViimeisinMerkki"></param>
+    /// <param name="syvyys">Määrittää kuinka pitkältä/syvältä syötteestä lähdetään merkkiä poistamaan</param>
+    /// <param name="tyhjennysOptio">Mikäli tosi, tyhjennetään koko bufferi</param>
+    /// <param name="poistaViimeisinMerkki">Mikäli tosi, poistetaan myös viimeinen merkki</param>
     private static void PoistaSyotetteesta(int syvyys, bool tyhjennysOptio = true, bool poistaViimeisinMerkki = false)
     {
-        if (bufferi.Length + kursoriX > syvyys + kursoriX)
+        if (_bufferi.Length + _kursoriX > syvyys + _kursoriX)
         {
-            bufferi.Remove(bufferi.Length + kursoriX - syvyys - kursoriX, syvyys);
-            if (poistaViimeisinMerkki) bufferi.Remove(bufferi.Length, 1);
+            _bufferi.Remove(_bufferi.Length + _kursoriX - syvyys - _kursoriX, syvyys);
+            if (poistaViimeisinMerkki) _bufferi.Remove(_bufferi.Length, 1);
         }
-        else if((syvyys == bufferi.Length || syvyys > bufferi.Length) && tyhjennysOptio)
+        else if((syvyys == _bufferi.Length || syvyys > _bufferi.Length) && tyhjennysOptio)
         {
-            bufferi.Clear();
+            _bufferi.Clear();
         }
         ResetoiKonsoli();
     }
 
     /// <summary>
     /// Tämä metodi resetoi konsolin ja kirjoittaa ohjetekstin ja bufferin senhetkisen sisällän ruudulle.
+    /// Resetoi myös kursorin sijainnin.
     /// </summary>
     private static void ResetoiKonsoli()
     {
         Console.Clear();
-        Console.WriteLine(ohjeTeksti);
-        Console.Write(bufferi.ToString());
-        SiirraKursoria(bufferi.Length, 0);
+        Console.WriteLine(_ohjeTeksti);
+        Console.Write(_bufferi.ToString());
+        SiirraKursoria(_bufferi.Length, 0);
     }
 
+    /// <summary>
+    /// Siirretään kursoria konsolin sisällä.
+    /// </summary>
+    /// <param name="x">Mihin siirretään kursori vaakasuunnassa</param>
+    /// <param name="y">Mihin siirretään kursori pystysuunnassa</param>
     private static void SiirraKursoria(int x, int y)
     {
-        if (x > 0 && x < bufferi.Length)
+        if (x > 0 && x < _bufferi.Length) // Varmistetaan, että kursorin sijainti pysyy kuitenkin tekstin sisällä.
         {
             Console.CursorLeft = x;
-            kursoriX = x;
+            _kursoriX = x;
         }
 
         if (y > 0)
         {
             Console.CursorTop = y;
-            kursoriY = y;
+            _kursoriY = y;
         }
     }
 
@@ -151,42 +203,49 @@ public class TekstiEditori
     /// </summary>
     private static void BufferiTaynna()
     {
-        Console.WriteLine($"{bufferionTaynnaTeksti}, bufferia käytetty: {bufferi.Length} / {bufferinKoko}");
+        Console.WriteLine($"{_bufferionTaynnaTeksti}, bufferia käytetty: {_bufferi.Length} / {_bufferinKoko}");
     }
 
     /// <summary>
     /// Sanitoi ja kirjoittaa bufferin sisällön tiedostoon.
     /// </summary>
-    /// <param name="tiedostonPolku"></param>
-    /// <param name="teksti"></param>
+    /// <param name="tiedostonPolku">Tiedoston polku merkkijonona</param>
+    /// <returns>Tosi, mikäli päädyttiin tallentamaan tiedostoon, muuten epätosi.</returns>
     private static bool KirjoitaBufferiTiedostoon(string tiedostonPolku)
     {
-        bufferi.Replace("\0", "");
-        if (bufferi.Length == 1)
+        _bufferi.Replace("\0", ""); // Poistetaan nyt nämä ns. tyhjät merkit
+        if (_bufferi.Length == 1) // Mikäli bufferin sisältö on vain yksi merkki, emme halua tallentaa rivinvaihtoa tai välilyöntiä.
         {
-            bufferi.Replace("\n", "");
-            bufferi.Replace(" ", "");
+            _bufferi.Replace("\n", "");
+            _bufferi.Replace(" ", "");
         }
 
-        syote = Console.ReadKey(true);
-        if (KirjoitetaankoTiedostoon(syote.Key)) {
-            File.WriteAllText(tiedostonPolku, bufferi.ToString());
+        _syote = Console.ReadKey(false);
+        if (KirjoitetaankoTiedostoon(_syote.Key)) { // Kysytään käyttäjltä haluaako hän tallentaa muutokset.
+            File.WriteAllText(tiedostonPolku, _bufferi.ToString());
             return true;
         }
 
         return false;
     }
 
+    /// <summary>
+    /// Kysyy käyttäjältä, haluaako hän tallentaa tiedostoon tehdyt muutokset.
+    /// HUOM: Tämä metodi käyttää rekursiota siinä tapauksessa, että käyttäjä painaa
+    /// näppäintä joka ei kelpaa (ei ole K/E), jotta saadaan kysyttyä asiasta uudestaan.
+    /// </summary>
+    /// <param name="nappain">Painetun näppäimen arvo</param>
+    /// <returns>Tosi mikäli käyttäjä haluaa tallentaa, muuten epätosi</returns>
     private static bool KirjoitetaankoTiedostoon(ConsoleKey nappain)
     {
-        SiirraKursoria(0, 0);
+        SiirraKursoria(0, 0); // resetoidaan kursorin sijainti
         Console.WriteLine("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         Console.WriteLine("Tallennetaanko tiedostoon tehdyt muutokset? Kyllä/Ei (K/E)");
         Console.WriteLine("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-        if (nappain == ConsoleKey.Delete)
+        if (nappain == ConsoleKey.Delete) // Jos näppäin on delete, kysytään uudestaan (liittyy rekursion toteutustapaan)
         {
-            syote = Console.ReadKey();
-            nappain = syote.Key;
+            _syote = Console.ReadKey();
+            nappain = _syote.Key;
         }
         switch (nappain)
         {
@@ -194,7 +253,7 @@ public class TekstiEditori
                 return true;
             case ConsoleKey.E:
                 break;
-            default:
+            default: // Epävalidi näppäin, kysytään uudestaan rekursion avulla.
                 return KirjoitetaankoTiedostoon(ConsoleKey.Delete);
         }
         return false;
