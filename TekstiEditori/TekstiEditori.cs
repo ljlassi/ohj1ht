@@ -209,8 +209,8 @@ public class TekstiEditori
     /// <summary>
     /// Tämä metodi resetoi konsolin ja kirjoittaa ohjetekstin ja bufferin senhetkisen sisällän ruudulle.
     /// Resetoi myös kursorin sijainnin.
-    /// <param name="resetoiKursori">Resetoidaanko myös kursorin sijainti? Oletuksena kyllä</param>
     /// </summary>
+    /// <param name="resetoiKursori">Resetoidaanko myös kursorin sijainti? Oletuksena kyllä</param>
     private static void ResetoiKonsoli(bool resetoiKursori = true)
     {
         Console.Clear();
