@@ -77,7 +77,13 @@ public class TekstiEditori
        
         if (File.Exists(_tiedostonNimi)) // Mikäli tiedosto on jo olemassa
         {
-            _bufferi.Append(File.ReadAllText(_tiedostonNimi)); // Luetaan tiedoston sisältö bufferiin
+            string ladattuTeksti = File.ReadAllText(_tiedostonNimi);
+            if (ladattuTeksti.Length > _bufferinKoko)
+            {
+                Console.WriteLine($"Tiedoston {_tiedostonNimi} koko ylittää bufferin maksimikoon ({ladattuTeksti.Length} / {_bufferinKoko})");
+                return;
+            }
+            _bufferi.Append(ladattuTeksti); // Luetaan tiedoston sisältö bufferiin
         }
         ResetoiKonsoli(); // Resetoidaan konsolin sisältö ja näytetään olemassa oleva teksti
         
