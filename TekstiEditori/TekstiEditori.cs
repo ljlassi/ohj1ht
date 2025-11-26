@@ -216,10 +216,17 @@ public class TekstiEditori
         Console.Clear();
         Console.WriteLine(_ohjeTeksti);
         Console.Write(_bufferi.ToString());
-
+        int konsolirivinMaksimiPituus = 100;
         if (resetoiKursori)
         {
-            SiirraKursoria(_bufferi.Length, 1);
+            if (_bufferi.Length > konsolirivinMaksimiPituus)
+            {
+                SiirraKursoria(konsolirivinMaksimiPituus, 1);
+            }
+            else
+            {
+                SiirraKursoria(_bufferi.Length, 1);
+            }
         }
         
     }
